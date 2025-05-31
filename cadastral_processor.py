@@ -11,27 +11,15 @@ from polygon_processor import PolygonProcessor
 from model_predictor import ModelPredictor
 from config import DEFAULT_ZOOM, DEFAULT_TARGET_WIDTH, DEFAULT_TARGET_HEIGHT
 
-
+# Главный класс для обработки кадастровых участков
 class CadastralProcessor:
-    """
-    Главный класс для обработки кадастровых участков
-    """
-    
     def __init__(self):
         self.downloader = SatelliteImageDownloader()
         self.polygon_processor = PolygonProcessor()
         self.model_predictor = ModelPredictor()
-        
+    
+    # Получает данные кадастрового участка    
     def get_cadastral_data(self, cadastral_number: str) -> Dict:
-        """
-        Получает данные кадастрового участка
-        
-        Args:
-            cadastral_number: кадастровый номер
-            
-        Returns:
-            Словарь с данными участка
-        """
         try:
             area = Area(cadastral_number)
             geometry = area.get_geometry()
@@ -55,16 +43,8 @@ class CadastralProcessor:
                 'error': str(e)
             }
     
+    # Загружает спутниковое изображение для заданных координат
     def download_satellite_image(self, center_lon: float, center_lat: float) -> Optional[Image.Image]:
-        """
-        Загружает спутниковое изображение для заданных координат
-        
-        Args:
-            center_lon, center_lat: координаты центра
-            
-        Returns:
-            PIL Image или None
-        """
         try:
             image = self.downloader.download_high_resolution_image(
                 center_lon, center_lat,
@@ -77,37 +57,17 @@ class CadastralProcessor:
             print(f"Ошибка при загрузке изображения: {e}")
             return None
     
+    # Сохраняет изображение и возвращает путь к файлу
     def save_image(self, image: Image.Image, center_lat: float, center_lon: float) -> str:
-        """
-        Сохраняет изображение и возвращает путь к файлу
-        
-        Args:
-            image: PIL изображение
-            center_lat, center_lon: координаты центра
-            
-        Returns:
-            Путь к сохраненному файлу
-        """
         filename = f"{center_lat},{center_lon}.png"
         image.save(filename, quality=95)
         return filename
     
+    # Полная обработка кадастрового участка с отрисовкой маски, контура и полигона
     def process_with_mask_and_polygon(self, cadastral_number: str, 
                                     show_mask: bool = True, 
                                     show_contour: bool = True, 
                                     show_polygon: bool = True) -> Dict:
-        """
-        Полная обработка кадастрового участка с отрисовкой маски, контура и полигона
-        
-        Args:
-            cadastral_number: кадастровый номер участка
-            show_mask: отображать ли маску сегментации
-            show_contour: отображать ли контур, найденный нейросетью
-            show_polygon: отображать ли кадастровый полигон
-            
-        Returns:
-            Словарь с результатами обработки
-        """
         
         # Получаем данные участка
         cadastral_data = self.get_cadastral_data(cadastral_number)
@@ -137,19 +97,19 @@ class CadastralProcessor:
             if mask is None:
                 return {'success': False, 'error': 'Не удалось получить предсказание модели'}
         
-        # 1. Отрисовка маски сегментации (если включена)
+        # Отрисовка маски сегментации (если включена)
         if show_mask and mask is not None:
             result_image = self.model_predictor.create_colored_mask_overlay(
                 result_image, mask, mask_color=(0, 0, 255), alpha=0.3
             )
         
-        # 2. Отрисовка контура, найденного нейросетью (если включена)
+        # Отрисовка контура, найденного нейросетью (если включена)
         if show_contour and mask is not None:
             result_image = self.model_predictor.draw_contours_on_image(
                 result_image, mask, color=(0, 255, 0), thickness=5
             )
         
-        # 3. Отрисовка кадастрового полигона (если включена)
+        # Отрисовка кадастрового полигона (если включена)
         if show_polygon:
             result_image = self.polygon_processor.draw_polygon_opencv(
                 result_image, coordinates, center_lon, center_lat, 
@@ -174,17 +134,8 @@ class CadastralProcessor:
             'mask': mask
         }
     
+    # Анализирует пересечение между маской сегментации и кадастровым полигоном
     def analyze_mask_polygon_overlap(self, cadastral_number: str) -> Dict:
-        """
-        Анализирует пересечение между маской сегментации и кадастровым полигоном
-        
-        Args:
-            cadastral_number: кадастровый номер
-            
-        Returns:
-            Словарь с метриками пересечения
-        """
-        
         # Получаем данные участка
         cadastral_data = self.get_cadastral_data(cadastral_number)
         if not cadastral_data['success']:
@@ -232,13 +183,8 @@ class CadastralProcessor:
             'intersection_area': int(np.sum(intersection))
         }
     
+    # Удаляет временные файлы
     def cleanup_files(self, filenames: list):
-        """
-        Удаляет временные файлы
-        
-        Args:
-            filenames: список имен файлов для удаления
-        """
         for filename in filenames:
             try:
                 if os.path.exists(filename):

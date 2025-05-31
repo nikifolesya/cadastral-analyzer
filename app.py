@@ -1,12 +1,8 @@
 import streamlit as st
 import pandas as pd
-from PIL import Image
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 from config import validate_cadastral_number
 from cadastral_processor import CadastralProcessor
-
 
 def main():
     st.set_page_config(
@@ -56,7 +52,6 @@ def main():
         # Валидация номера
         if cadastral_number:
             if validate_cadastral_number(cadastral_number):
-                # st.success("Номер корректен")
                 process_button_disabled = False
             else:
                 st.error("Некорректный формат кадастрового номера!")
@@ -106,14 +101,6 @@ def main():
 
 
 def display_results(result, metrics, cadastral_number):
-    """
-    Отображает результаты анализа
-    
-    Args:
-        result: результат обработки изображения
-        metrics: метрики пересечения
-        cadastral_number: кадастровый номер
-    """
     
     # Информация об участке
     st.subheader(f"Участок {cadastral_number}")
@@ -129,7 +116,7 @@ def display_results(result, metrics, cadastral_number):
     # Отображение изображений
     st.subheader("Результат анализа")
     
-    # Создаем две колонки для изображений
+    # Две колонки для изображений
     img_col1, img_col2 = st.columns(2)
     
     with img_col1:

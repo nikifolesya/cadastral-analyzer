@@ -8,12 +8,8 @@ import segmentation_models_pytorch as smp
 from typing import Optional
 from config import DEVICE, MODEL_PATH
 
-
+# Класс для предсказания масок сегментации с помощью обученной модели
 class ModelPredictor:
-    """
-    Класс для предсказания масок сегментации с помощью обученной модели
-    """
-    
     def __init__(self, model_path: str = MODEL_PATH, device: str = DEVICE):
         self.device = device
         self.model_path = model_path
@@ -22,8 +18,8 @@ class ModelPredictor:
         self._init_model()
         self._init_transform()
     
+    # Инициализация модели
     def _init_model(self):
-        """Инициализация модели"""
         self.model = smp.Unet(
             encoder_name="resnet34",
             encoder_weights=None,
@@ -43,25 +39,16 @@ class ModelPredictor:
             print(f"Ошибка при загрузке модели: {e}")
             self.model = None
     
+    # Инициализация трансформаций для предобработки изображений
     def _init_transform(self):
-        """Инициализация трансформаций для предобработки изображений"""
         self.transform = A.Compose([
             A.Resize(512, 512),
             A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             ToTensorV2()
         ])
     
+    # Предсказывает маску сегментации для изображения
     def predict_mask(self, image: np.ndarray) -> Optional[np.ndarray]:
-        """
-        Предсказывает маску сегментации для изображения
-        
-        Args:
-            image: входное изображение в формате numpy array (BGR)
-            
-        Returns:
-            Бинарная маска или None при ошибке
-        """
-        
         if self.model is None:
             print("Модель не загружена")
             return None
@@ -94,17 +81,8 @@ class ModelPredictor:
             print(f"Ошибка при предсказании маски: {e}")
             return None
     
+    # Находит контуры на основе маски
     def get_contours_from_mask(self, mask: np.ndarray, epsilon_factor: float = 0.022) -> list:
-        """
-        Находит контуры на основе маски
-        
-        Args:
-            mask: бинарная маска
-            epsilon_factor: параметр точности аппроксимации контура
-            
-        Returns:
-            Список контуров
-        """
         
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
@@ -117,20 +95,9 @@ class ModelPredictor:
         
         return approximated_contours
     
+    # Рисует контуры на изображении
     def draw_contours_on_image(self, image: np.ndarray, mask: Optional[np.ndarray] = None,
                               color: tuple = (0, 255, 0), thickness: int = 5) -> np.ndarray:
-        """
-        Рисует контуры на изображении
-        
-        Args:
-            image: исходное изображение
-            mask: маска (если None, то предсказывается автоматически)
-            color: цвет контуров
-            thickness: толщина линий
-            
-        Returns:
-            Изображение с нарисованными контурами
-        """
         
         if mask is None:
             mask = self.predict_mask(image)
@@ -151,20 +118,9 @@ class ModelPredictor:
         
         return result_image
     
+    # Создает наложение цветной маски на изображение
     def create_colored_mask_overlay(self, image: np.ndarray, mask: Optional[np.ndarray] = None,
                                    mask_color: tuple = (0, 0, 255), alpha: float = 0.3) -> np.ndarray:
-        """
-        Создает наложение цветной маски на изображение
-        
-        Args:
-            image: исходное изображение
-            mask: маска (если None, то предсказывается автоматически)
-            mask_color: цвет маски в формате BGR
-            alpha: прозрачность маски (0-1)
-            
-        Returns:
-            Изображение с наложенной маской
-        """
         
         if mask is None:
             mask = self.predict_mask(image)

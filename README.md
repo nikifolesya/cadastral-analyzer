@@ -5,16 +5,17 @@
 ## Структура проекта
 
 ```
-├── app.py                    # Основное Streamlit приложение
-├── config.py                 # Конфигурация и валидация
-├── image_downloader.py       # Класс для загрузки спутниковых изображений
-├── polygon_processor.py      # Класс для обработки полигонов
-├── model_predictor.py        # Класс для предсказания масок
-├── cadastral_processor.py    # Главный класс обработки кадастров
-├── requirements.txt          # Зависимости проекта
-├── .env                      # Переменные окружения
+├── app.py                                   # Основное Streamlit приложение
+├── config.py                                # Конфигурация и валидация
+├── image_downloader.py                      # Класс для загрузки спутниковых изображений
+├── polygon_processor.py                     # Класс для обработки полигонов
+├── model_predictor.py                       # Класс для предсказания масок
+├── cadastral_processor.py                   # Главный класс обработки кадастров
+├── requirements.txt                         # Зависимости проекта
+├── .env                                     # Переменные окружения
 └── model/
     └── unet_resnet34_plot_segmentation.pth  # Обученная модель
+    └── train_model_unet.py                  # Обучение модели
 ```
 
 ## Установка и настройка
